@@ -3,6 +3,9 @@ import photoCardTpl from './templates/photo-card';
 import GalleryApi from './js/gallery_api';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import 'notiflix/dist/notiflix-3.2.6.min.css';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+import debounce from 'lodash.debounce';
 
 const galleryApi = new GalleryApi();
 const refs = {
@@ -33,7 +36,9 @@ async function fetchPictures() {
     const pictures = await galleryApi.getPictures();
     renderPictures(pictures);
   } catch (err) {
-    onError(err);
+    if (err.response.status === 400)
+      onError("We're sorry, but you've reached requests limit!");
+    onError(err.message);
   } finally {
     refs.formRef.reset();
   }
@@ -58,8 +63,39 @@ function renderPictures(pictures) {
     );
     refs.galleryContainerRef.insertAdjacentHTML('beforeend', markup);
     refs.loadMoreBtnRef.classList.remove('is-hidden');
+    if (galleryApi.currentPage === 1)
+      Notify.success(`Hooray! We found ${pictures.totalHits} images.`);
+    else scrollOnLoadMore();
+    window.onscroll = debounce(infiniteScroll, 500);
     galleryApi.incrementPage();
+    new SimpleLightbox('.gallery a', {
+      captionDelay: 250,
+    });
   }
+}
+
+function infiniteScroll() {
+  let isExecuted = false;
+  if (
+    window.scrollY > document.body.offsetHeight - window.outerHeight &&
+    !isExecuted
+  ) {
+    isExecuted = true;
+    fetchPictures();
+    setTimeout(() => {
+      isExecuted = false;
+    }, 500);
+  }
+}
+
+function scrollOnLoadMore() {
+  const { height: cardHeight } =
+    refs.galleryContainerRef.firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 4,
+    behavior: 'smooth',
+  });
 }
 
 function onError(err) {

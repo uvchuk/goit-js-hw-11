@@ -20,6 +20,12 @@ export default class GalleryApi {
   set query(newQuery) {
     this.searchQuery = newQuery;
   }
+  get currentPage() {
+    return this.page;
+  }
+  set currentPage(newPage) {
+    this.page = newPage;
+  }
   incrementPage() {
     this.page += 1;
   }
