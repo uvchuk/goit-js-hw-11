@@ -1,4 +1,6 @@
-import API_KEY from './API_KEY';
+import { API_KEY } from './API_KEY';
+import axios from 'axios';
+
 const BASE_URL = 'https://pixabay.com/api/';
 const FILTER = `image_type=photo&orientation=horizontal&safesearch=true&per_page=40`;
 export default class GalleryApi {
@@ -6,13 +8,11 @@ export default class GalleryApi {
     this.searchQuery = '';
     this.page = 1;
   }
-  getPictures() {
-    const url = `${BASE_URL}?key=${API_KEY}&q=${this.searchQuery}&${FILTER}&page=${this.page}`;
-    return fetch(url)
-      .then(result => result.json())
-      .then(pictures => {
-        return pictures;
-      });
+  async getPictures() {
+    const response = await axios.get(
+      `${BASE_URL}?key=${API_KEY}&q=${this.searchQuery}&${FILTER}&page=${this.page}`
+    );
+    return response.data;
   }
   get query() {
     return this.searchQuery;

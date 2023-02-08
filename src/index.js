@@ -26,12 +26,21 @@ function onSearch(evt) {
     return;
   }
   fetchPictures();
-  refs.formRef.reset();
+}
+
+async function fetchPictures() {
+  try {
+    const pictures = await galleryApi.getPictures();
+    renderPictures(pictures);
+  } catch (err) {
+    onError(err);
+  } finally {
+    refs.formRef.reset();
+  }
 }
 
 function renderPictures(pictures) {
   refs.loadMoreBtnRef.classList.add('is-hidden');
-
   if (pictures.totalHits === 0)
     onError(
       'Sorry, there are no images matching your search query. Please try again.'
@@ -51,10 +60,6 @@ function renderPictures(pictures) {
     refs.loadMoreBtnRef.classList.remove('is-hidden');
     galleryApi.incrementPage();
   }
-}
-
-function fetchPictures() {
-  galleryApi.getPictures().then(renderPictures).catch(onError);
 }
 
 function onError(err) {
